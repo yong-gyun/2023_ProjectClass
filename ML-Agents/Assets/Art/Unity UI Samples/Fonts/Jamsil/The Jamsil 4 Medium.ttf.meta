@@ -1,0 +1,26 @@
+fileFormatVersion: 2
+guid: 3d97b88bb322cba4fad171c16dae75f2
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontNames:
+  - The Jamsil
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: b42b3aaf2c5202e498a656caa9a4c577, type: 3}
+  - {fileID: 12800000, guid: 626912545ef6c974cbd857fcfd187b39, type: 3}
+  - {fileID: 12800000, guid: 352559a90e302544ab135acd48056793, type: 3}
+  - {fileID: 12800000, guid: 597f14b08e96f0549b9c157bb91a3e33, type: 3}
+  - {fileID: 12800000, guid: 1dcb27f7c10e242478176d1a595dfeb2, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
