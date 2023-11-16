@@ -37,6 +37,7 @@ public class AgentStat : Stat
     public void OnShield(float t)
     {
         ResourceManager.Instance.Destory(_shield);
+        _shield = null;
 
         if(_shield == null)
             _shield = ResourceManager.Instance.Instantiate("Item/ShieldEffect", transform);

@@ -5,12 +5,14 @@ using UnityEngine;
 
 public class ItemController : MonoBehaviour
 {
+    Field _field;
     Define.ItemType _type;
 
     public void SetType(Define.ItemType type)
     {
         _type = type;
         tag = "Item";
+        _field = transform.root.GetComponent<Field>();
         transform.DORotate(Vector3.up * 180f, 2f).SetLoops(-1, LoopType.Incremental);
         ResourceManager.Instance.Destory(gameObject, 7f);
     }
@@ -24,7 +26,7 @@ public class ItemController : MonoBehaviour
     {
         if(other.CompareTag("Agent"))
         {
-            AgentController agent = ObjectManager.Instance.Agent;
+            AgentController agent = _field.Agent;
 
             switch (_type)
             {

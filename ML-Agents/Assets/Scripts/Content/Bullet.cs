@@ -24,7 +24,6 @@ public class Bullet : MonoBehaviour
             _moveSpeed = 25f;
 
         ResourceManager.Instance.Destory(gameObject, 8f);
-        ObjectManager.Instance.BulletPool.Add(gameObject);
         _init = true;
         return true;
     }
@@ -44,6 +43,12 @@ public class Bullet : MonoBehaviour
     {
         if (_init == false)
             return;
+
+        if (other.CompareTag("Wall"))
+        {
+            ResourceManager.Instance.Destory(gameObject);
+            return;
+        }
 
         if (other.CompareTag("Agent") && _isAgent == false || other.CompareTag("Enemy") && _isAgent == true)
         {

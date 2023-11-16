@@ -11,7 +11,7 @@ public abstract class UI_Base : MonoBehaviour
     protected Dictionary<Type, Object[]> _objects = new Dictionary<Type, Object[]>();
     bool _init;
 
-    private void Start()
+    private void Awake()
     {
         Init();
     }

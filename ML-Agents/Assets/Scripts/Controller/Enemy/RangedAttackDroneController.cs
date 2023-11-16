@@ -1,4 +1,5 @@
 using DG.Tweening;
+using Google.Protobuf.WellKnownTypes;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -28,7 +29,7 @@ public class RangedAttackDroneController : DroneController, IRangedAttackDrone
             return;
 
         _currentTime -= Time.deltaTime;
-        Vector3 dir = (transform.position - ObjectManager.Instance.Agent.transform.position).normalized;
+        Vector3 dir = (transform.position - Field.Agent.transform.position).normalized;
         Quaternion qua = Quaternion.LookRotation(dir);
         transform.DORotateQuaternion(qua, 2f);
 
@@ -64,8 +65,12 @@ public class RangedAttackDroneController : DroneController, IRangedAttackDrone
         {
             case Define.DroneType.OneShotDrone:
                 {
-                    GameObject go = ResourceManager.Instance.Instantiate("DronBullet", _firePoints[0].position, transform.rotation);
-                    Bullet bullet = Util.GetOrAddComponent<Bullet>(go);
+                    Bullet bullet = Field.SpawnPool.CreateBullet("DronBullet", (go) =>
+                    {
+                        go.transform.position = _firePoints[0].position;
+                        go.transform.rotation = transform.rotation;
+                    });
+
                     bullet.Init(_stat.Attack, false);
                 }
                 break;
@@ -73,8 +78,12 @@ public class RangedAttackDroneController : DroneController, IRangedAttackDrone
                 {
                     for (int i = 0; i < _firePoints.Count; i++)
                     {
-                        GameObject go = ResourceManager.Instance.Instantiate("DronBullet", _firePoints[i].position, transform.rotation);
-                        Bullet bullet = Util.GetOrAddComponent<Bullet>(go);
+                        Bullet bullet = Field.SpawnPool.CreateBullet("DronBullet", (go) =>
+                        {
+                            go.transform.position = _firePoints[0].position;
+                            go.transform.rotation = transform.rotation;
+                        });
+
                         bullet.Init(_stat.Attack, false);
                     }
                 }

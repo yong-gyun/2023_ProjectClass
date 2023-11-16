@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.MLAgents;
 using UnityEngine;
 
 public class BossController : EnemyController
@@ -44,6 +45,11 @@ public class BossController : EnemyController
         _currentIndex = 0;
         _maxIndex = 4;
         _stat.SetStat(500f, 500f, 5f, 0f, 0f);
+        UI_BossHp hpBar = UIManager.Instance.ShowPopupUI<UI_BossHp>();
+        hpBar.SetHP(_stat.Hp / _stat.MaxHp);
+
+        _stat.OnDamagedEventHandler += () => { hpBar.SetHP(_stat.Hp / _stat.MaxHp); };
+
         IsActioning = false;
         return true;
     }
@@ -92,11 +98,37 @@ public class BossController : EnemyController
 
         for (int i = 0; i < 5; i++)
         {
-            ResourceManager.Instance.Instantiate("BossBullet", _firePoints[0].position, Quaternion.identity).GetComponent<Bullet>().Init(_stat.Attack, false);
-            ResourceManager.Instance.Instantiate("BossBullet", _firePoints[0].position, Quaternion.Euler(0f, 20f, 0f)).GetComponent<Bullet>().Init(_stat.Attack, false);
-            ResourceManager.Instance.Instantiate("BossBullet", _firePoints[0].position, Quaternion.Euler(0f, -20f, 0f)).GetComponent<Bullet>().Init(_stat.Attack, false);
-            ResourceManager.Instance.Instantiate("BossBullet", _firePoints[0].position, Quaternion.Euler(0f, 40f, 0f)).GetComponent<Bullet>().Init(_stat.Attack, false);
-            ResourceManager.Instance.Instantiate("BossBullet", _firePoints[0].position, Quaternion.Euler(0f, -40f, 0f)).GetComponent<Bullet>().Init(_stat.Attack, false);
+            Field.SpawnPool.CreateBullet("BossBullet", (go) =>
+            {
+                go.transform.position = _firePoints[0].position;
+                go.transform.rotation = Quaternion.identity;
+                go.GetComponent<Bullet>().Init(_stat.Attack, false);
+            });
+            Field.SpawnPool.CreateBullet("BossBullet", (go) =>
+            {
+                go.transform.position = _firePoints[0].position;
+                go.transform.rotation = Quaternion.Euler(0f, 20f, 0f);
+                go.GetComponent<Bullet>().Init(_stat.Attack, false);
+            });
+            Field.SpawnPool.CreateBullet("BossBullet", (go) =>
+            {
+                go.transform.position = _firePoints[0].position;
+                go.transform.rotation = Quaternion.Euler(0f, -20f, 0f);
+                go.GetComponent<Bullet>().Init(_stat.Attack, false);
+            });
+            Field.SpawnPool.CreateBullet("BossBullet", (go) =>
+            {
+                go.transform.position = _firePoints[0].position;
+                go.transform.rotation = Quaternion.Euler(0f, 40f, 0f);
+                go.GetComponent<Bullet>().Init(_stat.Attack, false);
+            });
+            Field.SpawnPool.CreateBullet("BossBullet", (go) =>
+            {
+                go.transform.position = _firePoints[0].position;
+                go.transform.rotation = Quaternion.Euler(0f, -40f, 0f);
+                go.GetComponent<Bullet>().Init(_stat.Attack, false);
+            });
+
             yield return wfs;
         }
 
@@ -109,13 +141,34 @@ public class BossController : EnemyController
 
         for (int i = 0; i < 5; i++)
         {
-            ResourceManager.Instance.Instantiate("BossBullet", _firePoints[1].position, Quaternion.identity).GetComponent<Bullet>().Init(_stat.Attack, false);
-            ResourceManager.Instance.Instantiate("BossBullet", _firePoints[1].position, Quaternion.Euler(0f, 25f, 0f)).GetComponent<Bullet>().Init(_stat.Attack, false);
-            //ResourceManager.Instance.Instantiate("BossBullet", _firePoints[1].position, Quaternion.Euler(0f, -15f, 0f)).GetComponent<Bullet>().Init(_stat.Attack, false);
+            Field.SpawnPool.CreateBullet("BossBullet", (go) =>
+            {
+                go.transform.position = _firePoints[1].position;
+                go.transform.rotation = Quaternion.Euler(0f, 25f, 0f);
+                go.GetComponent<Bullet>().Init(_stat.Attack, false);
+            });
 
-            ResourceManager.Instance.Instantiate("BossBullet", _firePoints[2].position, Quaternion.identity).GetComponent<Bullet>().Init(_stat.Attack, false);
-            //ResourceManager.Instance.Instantiate("BossBullet", _firePoints[2].position, Quaternion.Euler(0f, 15f, 0f)).GetComponent<Bullet>().Init(_stat.Attack, false);
-            ResourceManager.Instance.Instantiate("BossBullet", _firePoints[2].position, Quaternion.Euler(0f, -25f, 0f)).GetComponent<Bullet>().Init(_stat.Attack, false);
+            Field.SpawnPool.CreateBullet("BossBullet", (go) =>
+            {
+                go.transform.position = _firePoints[1].position;
+                go.transform.rotation = Quaternion.identity;
+                go.GetComponent<Bullet>().Init(_stat.Attack, false);
+            });
+
+            Field.SpawnPool.CreateBullet("BossBullet", (go) =>
+            {
+                go.transform.position = _firePoints[2].position;
+                go.transform.rotation = Quaternion.identity;
+                go.GetComponent<Bullet>().Init(_stat.Attack, false);
+            });
+
+            Field.SpawnPool.CreateBullet("BossBullet", (go) =>
+            {
+                go.transform.position = _firePoints[2].position;
+                go.transform.rotation = Quaternion.Euler(0f, -25f, 0f);
+                go.GetComponent<Bullet>().Init(_stat.Attack, false);
+            });
+
             yield return wfs;
         }
 
@@ -130,9 +183,12 @@ public class BossController : EnemyController
         {
             for (int j = -90; j < 90; j += 30)
             {
-                GameObject go = ResourceManager.Instance.Instantiate("BossBullet", _firePoints[0].position, Quaternion.Euler(0f, j, 0f));
-                Bullet bullet = go.GetComponent<Bullet>();
-                bullet.Init(_stat.Attack, false); 
+                Field.SpawnPool.CreateBullet("BossBullet", (go) =>
+                {
+                    go.transform.position = _firePoints[0].position;
+                    go.transform.rotation = Quaternion.Euler(0f, j, 0f);
+                    go.GetComponent<Bullet>().Init(_stat.Attack, false);
+                });
                 yield return wfs;
             }
 
@@ -140,9 +196,12 @@ public class BossController : EnemyController
 
             for (int j = 90; j > -90; j -= 30)
             {
-                GameObject go = ResourceManager.Instance.Instantiate("BossBullet", _firePoints[0].position, Quaternion.Euler(0f, j, 0f));
-                Bullet bullet = go.GetComponent<Bullet>();
-                bullet.Init(_stat.Attack, false);
+                Field.SpawnPool.CreateBullet("BossBullet", (go) =>
+                {
+                    go.transform.position = _firePoints[0].position;
+                    go.transform.rotation = Quaternion.Euler(0f, j, 0f);
+                    go.GetComponent<Bullet>().Init(_stat.Attack, false);
+                });
                 yield return wfs;
             }
         }
@@ -158,9 +217,12 @@ public class BossController : EnemyController
         {
             for (int j = -90; j < 90; j += 20)
             {
-                GameObject go = ResourceManager.Instance.Instantiate("BossBullet", _firePoints[0].position, Quaternion.Euler(0f, j, 0f));
-                Bullet bullet = go.GetComponent<Bullet>();
-                bullet.Init(_stat.Attack, false);
+                Field.SpawnPool.CreateBullet("BossBullet", (go) =>
+                {
+                    go.transform.position = _firePoints[0].position;
+                    go.transform.rotation = Quaternion.Euler(0f, j, 0f);
+                    go.GetComponent<Bullet>().Init(_stat.Attack, false);
+                });
             }
 
             yield return wfs;
@@ -172,9 +234,10 @@ public class BossController : EnemyController
     protected override void OnDead()
     {
         Debug.Log("Boss Die");
-        ObjectManager.Instance.Agent.AddReward(50f);
+        AgentController agent = transform.root.GetComponent<Field>().Agent;
+        agent.AddReward(50f);
         ResourceManager.Instance.Destory(gameObject);
         GameManager.Instance.Score += 500;
-        ObjectManager.Instance.Agent.EndEpisode();
+        agent.EndEpisode();
     }
 }

@@ -1,8 +1,10 @@
 using DG.Tweening;
+using Google.Protobuf.WellKnownTypes;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
+using Unity.MLAgents.Sensors;
 using UnityEngine;
 
 public class AgentController : Agent
@@ -12,11 +14,21 @@ public class AgentController : Agent
     [SerializeField] bool _isAttackable;
     public AgentStat Stat { get { return _stat; } }
     public int UpgradeAttackCount;
+    [SerializeField] float _rightLimitPos;
+    [SerializeField] float _leftLimitPos;
+    [SerializeField] SpawnPool _spawnPool;
     AgentStat _stat;
     Vector3 _camOriginPos;
-    
+    [SerializeField] Field _field;  
+    [SerializeField] Vector3 _originPos;
+
     public override void Initialize()
     {
+        _originPos = transform.position;
+        _rightLimitPos = _originPos.x + Define.LIMITED_MOVE;
+        _leftLimitPos = _originPos.x - Define.LIMITED_MOVE;
+        _field = transform.root.GetComponent<Field>();
+
         _model = Util.FindChild(gameObject, "Model", true);
         _stat = GetComponent<AgentStat>();
         Transform firePoints = transform.Find("FirePoints");
@@ -29,29 +41,29 @@ public class AgentController : Agent
         _stat.OnDeadEventHandler += OnDead;
         _stat.OnDamagedEventHandler += () =>
         {
-            bool result = FindObjectOfType<UI_HitEffect>();
-            if(result == false)
-                UIManager.Instance.ShowPopupUI<UI_HitEffect>();
-            AddReward(-2.5f);
-            Camera.main.DOShakePosition(0.5f, 2f).OnComplete(() => { Camera.main.transform.DOMove(_camOriginPos, 0.1f); });
+            AddReward(-10f);
+            //bool result = FindObjectOfType<UI_HitEffect>();
+            //if(result == false)
+            //    UIManager.Instance.ShowPopupUI<UI_HitEffect>();
+            //Camera.main.DOShakePosition(0.5f, 2f).OnComplete(() => { Camera.main.transform.DOMove(_camOriginPos, 0.1f); });
         };
     }
             
     public override void OnEpisodeBegin()
     {
-        transform.position = Vector3.zero;
+        transform.position = _originPos;
         transform.rotation = Quaternion.identity;
         _stat.SetStat(100f, 100f, 5f, 12f, 0.1f);
         Camera.main.transform.position = _camOriginPos;
-        ObjectManager.Instance.Clear();
+        _field.SpawnPool.Clear();
         GameManager.Instance.Clear();
         UIManager.Instance.Clear();
 
         if (UIManager.Instance.SceneUI == null)
             UIManager.Instance.ShowSceneUI<UI_Game>();
-
         UpgradeAttackCount = 0;
-        ObjectManager.Instance.SpawnPool.OnStart();
+
+        _field.SpawnPool.OnStart();
         _isAttackable = true;
         (UIManager.Instance.SceneUI as UI_Game).RefreshUI();
     }
@@ -98,8 +110,11 @@ public class AgentController : Agent
                 break;
         }
 
-        if (transform.position.x <= -Define.LIMITED_MOVE && moveDir.x < 0f || transform.position.x >= Define.LIMITED_MOVE && moveDir.x > 0f)
+        if (transform.position.x <= _leftLimitPos && moveDir.x < 0f || transform.position.x >= _rightLimitPos && moveDir.x > 0f)
+        {
+            AddReward(-0.1f);
             return;
+        }
        
         _model.transform.DORotate((Vector3.forward * -moveDir.x) * 30f, 0.5f);
         transform.position += moveDir * _stat.MoveSpeed * Time.deltaTime;
@@ -117,8 +132,10 @@ public class AgentController : Agent
 
         for (int i = 0; i < _firePoints.Length; i++)
         {
-            GameObject go = ResourceManager.Instance.Instantiate("PlayerBullet", _firePoints[i].position, Quaternion.identity);
-            Bullet bullet = go.GetComponent<Bullet>();
+            Bullet bullet = _field.SpawnPool.CreateBullet("PlayerBullet", (go) => 
+            {
+                go.transform.position = _firePoints[i].position;
+            });
             bullet.Init(_stat.Attack + (UpgradeAttackCount * 2.5f), true);
         }
     }
@@ -132,7 +149,7 @@ public class AgentController : Agent
 
     void OnDead()
     {
-        SetReward(-10);
+        AddReward(-20);
         EndEpisode();
     }
 }

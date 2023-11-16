@@ -17,8 +17,12 @@ public class MeleeDroneController : DroneController
         {
             for(int i = 0; i < 360; i+=45) 
             {
-                GameObject go = ResourceManager.Instance.Instantiate("ExplosionFragment", transform.position, Quaternion.Euler(0f, i, 0f));
-                Bullet bullet = go.GetComponent<Bullet>();
+                Bullet bullet = Field.SpawnPool.CreateBullet("ExplosionFragment", (go) =>
+                {
+                    go.transform.position = transform.position;
+                    go.transform.rotation = Quaternion.Euler(0f, i, 0f);
+                });
+
                 bullet.Init(_stat.Attack, false);
             }
         }

@@ -1,4 +1,5 @@
 using DG.Tweening;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,7 +12,7 @@ public class UI_BossAppear : UI_Popup
     }
 
     Sequence _sequnce;
-
+    public Action OnCompleteHandler = null;
     protected override bool Init()
     {
         if (base.Init() == false)
@@ -27,8 +28,9 @@ public class UI_BossAppear : UI_Popup
         .Append(GetImage((int)Images.Image).DOFade(0f, 0.75f))
         .OnComplete(() =>
         {
-            ObjectManager.Instance.Clear();
-            ObjectManager.Instance.SpawnPool.OnSpawn(Define.EnemyType.Boss);
+            if (OnCompleteHandler != null)
+                OnCompleteHandler.Invoke();
+
             ClosePopupUI();
         });
         return true;

@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class DronePoint
 {
@@ -15,21 +17,40 @@ public class DronePoint
 
 public class SpawnPool : MonoBehaviour
 {
-    Dictionary<Define.EnemyType, Transform> _roots = new Dictionary<Define.EnemyType, Transform>();
+    Dictionary<string, Transform> _roots = new Dictionary<string, Transform>();
     Dictionary<int, DronePoint[]> _dronPoints = new Dictionary<int, DronePoint[]>();
+    
     Transform[] _spawnPoints;
     Coroutine _coroutine;
+    //Field _field;
 
-    bool _init;
-    float _minSpawnTime = 1f;
-    float _maxSpawnTime = 3.5f;
-    [SerializeField] float _currentTime;                     
+    [SerializeField] float _currentTime;
     [SerializeField] float _maxTime;
-    
+    float _minSpawnTime = 1f;
+    float _maxSpawnTime = 3.5f;    
+    bool _init;
+
+    void CreateRoot(string name)
+    {
+        Transform enemyPool = new GameObject($"{name}_Pool").transform;
+        enemyPool.parent = transform;
+        _roots.Add(name, enemyPool);
+    }
+
+    private void Awake()
+    {
+        Init();
+    }
+
     bool Init()
     {
         if (_init)
             return false;
+
+        //_field = transform.root.GetComponent<Field>();
+        CreateRoot("Enemy");
+        CreateRoot("Item");
+        CreateRoot("Bullet");
 
         #region Initialize points
         Transform spawnPoints = transform.Find("SpawnPoints");
@@ -68,26 +89,13 @@ public class SpawnPool : MonoBehaviour
             _dronPoints[2][i] = point;
         }
 
-        GameObject meteorRoot = new GameObject("Meteor_Root");
-        meteorRoot.transform.parent = transform;
-        _roots.Add(Define.EnemyType.Meteor, meteorRoot.transform);
-
-        GameObject dronRoot = new GameObject("Dron_Root");
-        dronRoot.transform.parent = transform;
-        _roots.Add(Define.EnemyType.Dron, dronRoot.transform);
         _init = true;
         #endregion
         return true;
     }
 
-    private void Update()
-    {
-        GameManager.Instance.CurrentTime += Time.deltaTime;
-    }
-
     public void OnStart()
     {
-        Init();
         _currentTime = 0f;
         _maxTime = 60f;
 
@@ -101,7 +109,7 @@ public class SpawnPool : MonoBehaviour
             StopCoroutine(_coroutine);
         _coroutine = StartCoroutine(CoSpawning());
     }
-
+    
     IEnumerator CoSpawning()
     {
         float spawnTime = 0f;
@@ -121,8 +129,6 @@ public class SpawnPool : MonoBehaviour
 
                     if (result)
                         break;
-                    
-                    yield return null;
                 }
 
                 spawnTime = 0f;
@@ -132,7 +138,48 @@ public class SpawnPool : MonoBehaviour
             yield return null;
         }
 
-        UIManager.Instance.ShowPopupUI<UI_BossAppear>();
+        Clear();
+        OnSpawn(Define.EnemyType.Boss);
+        //UIManager.Instance.ShowPopupUI<UI_BossAppear>().OnCompleteHandler += () =>
+        //{
+        //    Clear();
+        //    OnSpawn(Define.EnemyType.Boss);
+        //};
+    }
+
+    public GameObject Spawn(Define.EnemyType type)
+    {
+        GameObject go = ResourceManager.Instance.Instantiate($"Enemy/{type}");
+        EnemyController ec = go.GetComponent<EnemyController>();
+        ec.Type = type;
+        ec.transform.parent = _roots["Enemy"];
+        return go;
+    }
+
+    public DroneController DroneSpawn(GameObject go)
+    {
+        DroneController dc = Instantiate(go).GetComponent<DroneController>();
+        dc.Type = Define.EnemyType.Dron;
+        dc.name = go.name;
+        dc.transform.parent = _roots["Enemy"];
+        return dc;
+    }
+
+    public Bullet CreateBullet(string path, Action<GameObject> callback)
+    {
+        GameObject go = ResourceManager.Instance.Instantiate(path, callback: callback);
+        Bullet bullet = go.GetComponent<Bullet>();
+        bullet.transform.parent = _roots["Bullet"];
+        return bullet;
+    }
+
+    public GameObject CreateItem(Define.ItemType type)
+    {
+        GameObject go = ResourceManager.Instance.Instantiate($"Item/{type}Item");
+        ItemController ic = Util.GetOrAddComponent<ItemController>(go);
+        ic.transform.parent = _roots["Item"];
+        ic.SetType(type);
+        return go;
     }
 
     public bool OnSpawn(Define.EnemyType type)
@@ -143,7 +190,7 @@ public class SpawnPool : MonoBehaviour
         {
             case Define.EnemyType.Boss:
                 {
-                    GameObject go = ObjectManager.Instance.Spawn(type);
+                    GameObject go = Spawn(type);
                     go.transform.position = transform.position;
                     isSpawning = true;
                 }
@@ -182,13 +229,11 @@ public class SpawnPool : MonoBehaviour
                             int idx = Random.Range(0, points.Count);
                             Vector3 pos = points[idx].Point.position + Vector3.up * 20f;
 
-                            DroneController dc = ObjectManager.Instance.DroneSpawn(dronOrigin);
+                            DroneController dc = DroneSpawn(dronOrigin);
                             dc.DroneType = droneType;
                             dc.transform.position = pos;
                             dc.SetInfo(droneType, points[idx].Point);                            
                             dc.Stat.OnDeadEventHandler += () => { points[idx].IsExist = false; };
-                            dc.transform.parent = _roots[type];
-
                             points[idx].IsExist = true;
                             isSpawning = true;
                         }
@@ -199,12 +244,11 @@ public class SpawnPool : MonoBehaviour
                         DronePoint point = _dronPoints[2][idx];
                         Vector3 pos = point.Point.position + Vector3.up * 20f;
 
-                        DroneController dc = ObjectManager.Instance.DroneSpawn(dronOrigin);
+                        DroneController dc = DroneSpawn(dronOrigin);
                         dc.DroneType = droneType;
                         dc.transform.position = pos;
                         dc.SetInfo(droneType, point.Point);
                         dc.Stat.OnDeadEventHandler += () => { point.IsExist = false; };
-                        dc.transform.parent = _roots[type];
                         isSpawning = true;
                     }
                 }
@@ -212,14 +256,34 @@ public class SpawnPool : MonoBehaviour
             default:
                 {
                     int idx = Random.Range(0, _spawnPoints.Length);
-                    GameObject go = ObjectManager.Instance.Spawn(type);
+                    GameObject go = Spawn(type);
                     go.transform.position = _spawnPoints[idx].position;
-                    go.transform.parent = _roots[type];
                     isSpawning = true;
                 }
                 break;
         }
 
         return isSpawning;
+    }
+
+    public void Clear()
+    {
+        for (int i = 0; i < _roots["Enemy"].childCount; i++)
+        {
+            GameObject go = _roots["Enemy"].GetChild(i).gameObject;
+            ResourceManager.Instance.Destory(go);
+        }
+        
+        for (int i = 0; i < _roots["Bullet"].childCount; i++)
+        {
+            GameObject go = _roots["Bullet"].GetChild(i).gameObject;
+            ResourceManager.Instance.Destory(go);
+        }
+
+        for (int i = 0; i < _roots["Item"].childCount; i++)
+        {
+            GameObject go = _roots["Item"].GetChild(i).gameObject;
+            ResourceManager.Instance.Destory(go);
+        }
     }
 }
