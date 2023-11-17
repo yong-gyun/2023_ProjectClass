@@ -38,9 +38,9 @@ public class UI_Game : UI_Scene
 
     public void SetHp()
     {
-        //AgentStat stat = ObjectManager.Instance.Agent.Stat;
-        //GetScrollbar((int)Scrollbars.HPBar).size = stat.Hp / stat.MaxHp;
-        //GetText((int)Texts.HPText).text = $"{stat.Hp} / {stat.MaxHp}";
+        AgentStat stat = ObjectManager.Instance.Agent.Stat;
+        GetScrollbar((int)Scrollbars.HPBar).size = stat.Hp / stat.MaxHp;
+        GetText((int)Texts.HPText).text = $"{stat.Hp} / {stat.MaxHp}";
     }
 
     public void SetScore()

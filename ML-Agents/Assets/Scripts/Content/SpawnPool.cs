@@ -94,6 +94,11 @@ public class SpawnPool : MonoBehaviour
         return true;
     }
 
+    private void Update()
+    {
+        GameManager.Instance.CurrentTime += Time.deltaTime;
+    }
+
     public void OnStart()
     {
         _currentTime = 0f;

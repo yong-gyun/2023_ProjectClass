@@ -44,7 +44,7 @@ public class BossController : EnemyController
 
         _currentIndex = 0;
         _maxIndex = 4;
-        _stat.SetStat(500f, 500f, 5f, 0f, 0f);
+        _stat.SetStat(1500f, 1500f, 10f, 0f, 0f);
         UI_BossHp hpBar = UIManager.Instance.ShowPopupUI<UI_BossHp>();
         hpBar.SetHP(_stat.Hp / _stat.MaxHp);
 
@@ -235,7 +235,7 @@ public class BossController : EnemyController
     {
         Debug.Log("Boss Die");
         AgentController agent = transform.root.GetComponent<Field>().Agent;
-        agent.AddReward(50f);
+        agent.AddReward(30f);
         ResourceManager.Instance.Destory(gameObject);
         GameManager.Instance.Score += 500;
         agent.EndEpisode();

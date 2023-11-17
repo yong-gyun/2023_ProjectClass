@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
+using Unity.MLAgents.Policies;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
 
@@ -42,10 +43,10 @@ public class AgentController : Agent
         _stat.OnDamagedEventHandler += () =>
         {
             AddReward(-10f);
-            //bool result = FindObjectOfType<UI_HitEffect>();
-            //if(result == false)
-            //    UIManager.Instance.ShowPopupUI<UI_HitEffect>();
-            //Camera.main.DOShakePosition(0.5f, 2f).OnComplete(() => { Camera.main.transform.DOMove(_camOriginPos, 0.1f); });
+            bool result = FindObjectOfType<UI_HitEffect>();
+            if(result == false)
+                UIManager.Instance.ShowPopupUI<UI_HitEffect>();
+            Camera.main.DOShakePosition(0.5f, 2f).OnComplete(() => { Camera.main.transform.DOMove(_camOriginPos, 0.1f); });
         };
     }
             
@@ -56,6 +57,12 @@ public class AgentController : Agent
         _stat.SetStat(100f, 100f, 5f, 12f, 0.1f);
         Camera.main.transform.position = _camOriginPos;
         _field.SpawnPool.Clear();
+
+        bool isHeuristic = GetComponent<BehaviorParameters>().BehaviorType == BehaviorType.HeuristicOnly;
+
+        string behaviorType = isHeuristic ? "Heuristic" : "Agent";
+        Debug.Log($"{behaviorType} / Score : {GameManager.Instance.Score}");
+
         GameManager.Instance.Clear();
         UIManager.Instance.Clear();
 
@@ -78,13 +85,17 @@ public class AgentController : Agent
     {
         float horizontal = Input.GetAxis("Horizontal");
         var discrete = actionsOut.DiscreteActions;
+        float value = Input.GetAxis("Jump");
+        if (value > 0)
+        {
+            discrete[1] = 1;
+            Debug.Log("Check");
+            Debug.Log(discrete[1]);
+        }
         if (horizontal > 0)
             discrete[0] = 2;
         else if(horizontal < 0)
             discrete[0] = 1;
-
-        if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
-            discrete[1] = 1;
     }
 
     void MoveAgent(ActionSegment<int> segment)

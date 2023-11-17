@@ -29,5 +29,4 @@ public class Field : MonoBehaviour
     }
 
     AgentController _agent;
-
 }

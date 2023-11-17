@@ -80,7 +80,7 @@ public class RangedAttackDroneController : DroneController, IRangedAttackDrone
                     {
                         Bullet bullet = Field.SpawnPool.CreateBullet("DronBullet", (go) =>
                         {
-                            go.transform.position = _firePoints[0].position;
+                            go.transform.position = _firePoints[i].position;
                             go.transform.rotation = transform.rotation;
                         });
 
