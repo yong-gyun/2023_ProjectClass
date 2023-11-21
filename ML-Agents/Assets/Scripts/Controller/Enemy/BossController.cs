@@ -44,11 +44,12 @@ public class BossController : EnemyController
 
         _currentIndex = 0;
         _maxIndex = 4;
-        _stat.SetStat(1500f, 1500f, 10f, 0f, 0f);
+        _stat.SetStat(1500f * GameManager.Instance.CurrentStage, 1500f * GameManager.Instance.CurrentStage, 10f, 0f, 0f);
         UI_BossHp hpBar = UIManager.Instance.ShowPopupUI<UI_BossHp>();
-        hpBar.SetHP(_stat.Hp / _stat.MaxHp);
+        hpBar.SetHP(_stat.Hp, _stat.MaxHp);
 
-        _stat.OnDamagedEventHandler += () => { hpBar.SetHP(_stat.Hp / _stat.MaxHp); };
+        _stat.OnDamagedEventHandler += () => { hpBar.SetHP(_stat.Hp, _stat.MaxHp); };
+        _stat.OnDeadEventHandler += () => { hpBar.ClosePopupUI(); };
 
         IsActioning = false;
         return true;
@@ -139,37 +140,74 @@ public class BossController : EnemyController
     {
         WaitForSeconds wfs = new WaitForSeconds(0.5f);
 
-        for (int i = 0; i < 5; i++)
+        if(GameManager.Instance.CurrentStage == 1)
         {
-            Field.SpawnPool.CreateBullet("BossBullet", (go) =>
+            for (int i = 0; i < 5; i++)
             {
-                go.transform.position = _firePoints[1].position;
-                go.transform.rotation = Quaternion.Euler(0f, 25f, 0f);
-                go.GetComponent<Bullet>().Init(_stat.Attack, false);
-            });
+                Field.SpawnPool.CreateBullet("BossBullet", (go) =>
+                {
+                    go.transform.position = _firePoints[1].position;
+                    go.transform.rotation = Quaternion.Euler(0f, 25f, 0f);
+                    go.GetComponent<Bullet>().Init(_stat.Attack, false);
+                });
 
-            Field.SpawnPool.CreateBullet("BossBullet", (go) =>
+                Field.SpawnPool.CreateBullet("BossBullet", (go) =>
+                {
+                    go.transform.position = _firePoints[1].position;
+                    go.transform.rotation = Quaternion.identity;
+                    go.GetComponent<Bullet>().Init(_stat.Attack, false);
+                });
+
+                Field.SpawnPool.CreateBullet("BossBullet", (go) =>
+                {
+                    go.transform.position = _firePoints[2].position;
+                    go.transform.rotation = Quaternion.identity;
+                    go.GetComponent<Bullet>().Init(_stat.Attack, false);
+                });
+
+                Field.SpawnPool.CreateBullet("BossBullet", (go) =>
+                {
+                    go.transform.position = _firePoints[2].position;
+                    go.transform.rotation = Quaternion.Euler(0f, -25f, 0f);
+                    go.GetComponent<Bullet>().Init(_stat.Attack, false);
+                });
+
+                yield return wfs;
+            }
+        }
+        else
+        {
             {
-                go.transform.position = _firePoints[1].position;
-                go.transform.rotation = Quaternion.identity;
-                go.GetComponent<Bullet>().Init(_stat.Attack, false);
-            });
+                Bullet bullet = Field.SpawnPool.CreateBullet("BossBullet", (go) =>
+                {
+                    go.transform.position = _firePoints[0].position;
+                    go.transform.rotation = transform.rotation;
+                });
 
-            Field.SpawnPool.CreateBullet("BossBullet", (go) =>
+
+                bullet.Init(_stat.Attack, type: Define.BulletType.Bomb);
+                yield return new WaitForSeconds(0.35f);
+            }
             {
-                go.transform.position = _firePoints[2].position;
-                go.transform.rotation = Quaternion.identity;
-                go.GetComponent<Bullet>().Init(_stat.Attack, false);
-            });
-
-            Field.SpawnPool.CreateBullet("BossBullet", (go) =>
+                Bullet bullet = Field.SpawnPool.CreateBullet("BossBullet", (go) =>
+                {
+                    go.transform.position = _firePoints[1].position;
+                    go.transform.rotation = transform.rotation;
+                    go.transform.Rotate(Vector3.up * 30f);
+                });
+                bullet.Init(_stat.Attack, type: Define.BulletType.Bomb, t: 1f);
+            }
             {
-                go.transform.position = _firePoints[2].position;
-                go.transform.rotation = Quaternion.Euler(0f, -25f, 0f);
-                go.GetComponent<Bullet>().Init(_stat.Attack, false);
-            });
+                Bullet bullet = Field.SpawnPool.CreateBullet("BossBullet", (go) =>
+                {
+                    go.transform.position = _firePoints[2].position;
+                    go.transform.rotation = transform.rotation;
+                    go.transform.Rotate(Vector3.up * -30f);
+                });
+                bullet.Init(_stat.Attack, type: Define.BulletType.Bomb, t: 1f);
+            }
 
-            yield return wfs;
+            yield return new WaitForSeconds(1f);
         }
 
         IsActioning = false;
@@ -236,8 +274,19 @@ public class BossController : EnemyController
         Debug.Log("Boss Die");
         AgentController agent = transform.root.GetComponent<Field>().Agent;
         agent.AddReward(30f);
-        ResourceManager.Instance.Destory(gameObject);
+
+        GameObject go = ResourceManager.Instance.Instantiate("DroneExplosion", transform.position, Quaternion.identity);
+        go.transform.localScale *= 20f;
+        ResourceManager.Instance.Destory(go, 1f);
+
+        StartCoroutine(CoWait());
         GameManager.Instance.Score += 500;
-        agent.EndEpisode();
+    }
+
+    IEnumerator CoWait()
+    {
+        yield return new WaitForSeconds(1f);
+        UIManager.Instance.ShowPopupUI<UI_Clear>();
+        ResourceManager.Instance.Destory(gameObject);
     }
 }

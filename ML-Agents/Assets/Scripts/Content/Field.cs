@@ -29,4 +29,12 @@ public class Field : MonoBehaviour
     }
 
     AgentController _agent;
+
+    private void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.H))
+            Time.timeScale = 5f;
+        else if(Input.GetKeyDown(KeyCode.J))
+            Time.timeScale = 1f;
+    }
 }

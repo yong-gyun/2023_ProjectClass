@@ -19,17 +19,19 @@ public class SpawnPool : MonoBehaviour
 {
     Dictionary<string, Transform> _roots = new Dictionary<string, Transform>();
     Dictionary<int, DronePoint[]> _dronPoints = new Dictionary<int, DronePoint[]>();
-    
     Transform[] _spawnPoints;
+     
     Coroutine _coroutine;
     //Field _field;
 
     [SerializeField] float _currentTime;
     [SerializeField] float _maxTime;
     float _minSpawnTime = 1f;
-    float _maxSpawnTime = 3.5f;    
+    float _maxSpawnTime = 3.5f;
+    
+    public bool IsStart;
     bool _init;
-
+    
     void CreateRoot(string name)
     {
         Transform enemyPool = new GameObject($"{name}_Pool").transform;
@@ -96,7 +98,8 @@ public class SpawnPool : MonoBehaviour
 
     private void Update()
     {
-        GameManager.Instance.CurrentTime += Time.deltaTime;
+        if(IsStart)
+            GameManager.Instance.CurrentTime += Time.deltaTime;
     }
 
     public void OnStart()
@@ -113,6 +116,7 @@ public class SpawnPool : MonoBehaviour
         if(_coroutine != null)
             StopCoroutine(_coroutine);
         _coroutine = StartCoroutine(CoSpawning());
+        IsStart = true;
     }
     
     IEnumerator CoSpawning()
@@ -143,13 +147,11 @@ public class SpawnPool : MonoBehaviour
             yield return null;
         }
 
-        Clear();
-        OnSpawn(Define.EnemyType.Boss);
-        //UIManager.Instance.ShowPopupUI<UI_BossAppear>().OnCompleteHandler += () =>
-        //{
-        //    Clear();
-        //    OnSpawn(Define.EnemyType.Boss);
-        //};
+        UIManager.Instance.ShowPopupUI<UI_BossAppear>().OnCompleteHandler += () =>
+        {
+            Clear();
+            OnSpawn(Define.EnemyType.Boss);
+        };
     }
 
     public GameObject Spawn(Define.EnemyType type)

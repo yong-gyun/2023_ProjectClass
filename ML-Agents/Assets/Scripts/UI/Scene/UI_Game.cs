@@ -8,7 +8,8 @@ public class UI_Game : UI_Scene
     {
         ScoreText,
         TimeText,
-        HPText
+        HPText,
+        StageText
     }
 
     enum Scrollbars
@@ -34,6 +35,7 @@ public class UI_Game : UI_Scene
         SetHp();
         SetTime();
         SetScore();
+        GetText((int)Texts.StageText).text = $"Stage {GameManager.Instance.CurrentStage}";
     }
 
     public void SetHp()

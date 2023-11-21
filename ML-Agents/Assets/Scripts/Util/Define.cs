@@ -6,6 +6,13 @@ public class Define
 {
     public const float LIMITED_MOVE = 27.5F;
 
+    public enum BulletType
+    {
+        None,
+        Bomb,
+        Follow
+    }
+
     public enum EnemyType
     {
         Meteor,

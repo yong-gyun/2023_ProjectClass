@@ -33,6 +33,24 @@ public class GameManager : GlobalManager<GameManager>
 
     float _currentTime;
 
+    public int CurrentStage
+    {
+        get
+        {
+            return _currentStage;
+        }
+        set
+        {
+            _currentStage = value;
+
+            if (value == 2)
+                ObjectManager.Instance.Agent.Stat.Hp = ObjectManager.Instance.Agent.Stat.MaxHp;
+            (UIManager.Instance.SceneUI as UI_Game).RefreshUI();
+        }
+    }
+
+    int _currentStage; 
+
     public void Clear()
     {
         _score = 0;

@@ -57,12 +57,6 @@ public class AgentController : Agent
         _stat.SetStat(100f, 100f, 5f, 12f, 0.1f);
         Camera.main.transform.position = _camOriginPos;
         _field.SpawnPool.Clear();
-
-        bool isHeuristic = GetComponent<BehaviorParameters>().BehaviorType == BehaviorType.HeuristicOnly;
-
-        string behaviorType = isHeuristic ? "Heuristic" : "Agent";
-        Debug.Log($"{behaviorType} / Score : {GameManager.Instance.Score}");
-
         GameManager.Instance.Clear();
         UIManager.Instance.Clear();
 
@@ -70,9 +64,15 @@ public class AgentController : Agent
             UIManager.Instance.ShowSceneUI<UI_Game>();
         UpgradeAttackCount = 0;
 
-        _field.SpawnPool.OnStart();
         _isAttackable = true;
+
+        GameManager.Instance.CurrentStage = 1;
         (UIManager.Instance.SceneUI as UI_Game).RefreshUI();
+        ObjectManager.Instance.SpawnPool.IsStart = false;
+        UIManager.Instance.ShowPopupUI<UI_StartCountdown>().OnStartEvent += () => 
+        {
+            ObjectManager.Instance.SpawnPool.OnStart();
+        };
     }
 
     public override void OnActionReceived(ActionBuffers actions)

@@ -65,13 +65,26 @@ public class RangedAttackDroneController : DroneController, IRangedAttackDrone
         {
             case Define.DroneType.OneShotDrone:
                 {
-                    Bullet bullet = Field.SpawnPool.CreateBullet("DronBullet", (go) =>
+                    if(GameManager.Instance.CurrentStage == 1)
                     {
-                        go.transform.position = _firePoints[0].position;
-                        go.transform.rotation = transform.rotation;
-                    });
+                        Bullet bullet = Field.SpawnPool.CreateBullet("DronBullet", (go) =>
+                        {
+                            go.transform.position = _firePoints[0].position;
+                            go.transform.rotation = transform.rotation;
+                        });
 
-                    bullet.Init(_stat.Attack, false);
+                        bullet.Init(_stat.Attack, false);
+                    }
+                    else
+                    {
+                        Bullet bullet = Field.SpawnPool.CreateBullet("DronBullet", (go) =>
+                        {
+                            go.transform.position = _firePoints[0].position;
+                            go.transform.rotation = transform.rotation;
+                        });
+
+                        bullet.Init(_stat.Attack, false, Define.BulletType.Follow, t: 0.75f);
+                    }
                 }
                 break;
             case Define.DroneType.DoubleShotDrone:
